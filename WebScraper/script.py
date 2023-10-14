@@ -8,12 +8,26 @@ soup = BeautifulSoup(response.content, "html.parser")
 
 details_tags = soup.find_all("details")
 
-for details_tag in details_tags: 
+# Loop through the details tags and extract the information from the summary text
+for details_tag in details_tags:
+    # Extract the summary text
     summary = details_tag.find("summary")
-    news_type = summary.text if summary else "N/A"
+    if summary:
+        summary_text_element = summary.find("span", class_="u-text-decoration--underline")
+        if summary_text_element:
+            summary_text = summary_text_element.text
+            # Split the summary text to extract location and date
+            parts = summary_text.split(",")
+            if len(parts) == 3:
+                date = parts[0].strip()
+                news_type = parts[1].strip()
+                location = parts[2].strip()
+            else:
+                date = "N/A"
+                news_type = "N/A"
+                location = "N/A"
 
-    details_content = details_tag.find("div", class_="details-content")
-    location_date = details_content.text if details_content else "N/A"
-
-    print("Type of news:", news_type)
-    print("Location and Date:", location_date)
+            # Print the information
+            print("Type of News:", news_type)
+            print("Location:", location)
+            print("Date:", date)
