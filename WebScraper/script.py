@@ -9,6 +9,9 @@ URI = 'mongodb+srv://rebeccaabel:StGzyB9rUeSaVF9i@cluster0.tgvserh.mongodb.net/?
 client = MongoClient(URI, server_api=ServerApi('1'))
 db = client["CrimeMap"]
 collection = db["crime_data"]
+
+collection.create_index("Date", unique=True)
+
 try: 
     client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
@@ -18,9 +21,7 @@ except Exception as e:
 
 url = "https://polisen.se/aktuellt/polisens-nyheter/"  
 response = requests.get(url)
-
 soup = BeautifulSoup(response.content, "html.parser")
-
 details_tags = soup.find_all("details")
 
 for details_tag in details_tags:
@@ -45,15 +46,15 @@ for details_tag in details_tags:
             "Type of news": news_type,
             "Location": location,
             "Date": date
-        }
+            }
             
+            collection.insert_one(crime_document)
+            print("Type of News:", news_type)
+            print("Location:", location)
+            print("Date:", date)
 
-collection.insert_one(crime_document)
 
 
-print("Type of News:", news_type)
-print("Location:", location)
-print("Date:", date)
 
 
 client.close()
