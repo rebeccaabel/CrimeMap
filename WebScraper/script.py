@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from pymongo.errors import DuplicateKeyError
 
 
 URI = 'mongodb+srv://rebeccaabel:StGzyB9rUeSaVF9i@cluster0.tgvserh.mongodb.net/?retryWrites=true&w=majority'
@@ -47,14 +48,14 @@ for details_tag in details_tags:
             "Location": location,
             "Date": date
             }
-            
-            collection.insert_one(crime_document)
+            try:
+                collection.insert_one(crime_document)
+            except DuplicateKeyError:
+                pass
+
             print("Type of News:", news_type)
             print("Location:", location)
             print("Date:", date)
-
-
-
 
 
 client.close()
