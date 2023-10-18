@@ -25,7 +25,7 @@ except Exception as e:
 
 
 url = "https://polisen.se/aktuellt/polisens-nyheter/"  
-response = requests.get(url)
+response = requests.get(url, verify=False)
 soup = BeautifulSoup(response.content, "html.parser")
 details_tags = soup.find_all("details")
 
