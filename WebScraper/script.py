@@ -1,8 +1,10 @@
 from bs4 import BeautifulSoup
 import requests
+import time
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pymongo.errors import DuplicateKeyError
+from geopy.geocoders import Nominatim
 
 
 URI = 'mongodb+srv://rebeccaabel:StGzyB9rUeSaVF9i@cluster0.tgvserh.mongodb.net/?retryWrites=true&w=majority'
@@ -12,6 +14,8 @@ db = client["CrimeMap"]
 collection = db["crime_data"]
 
 collection.create_index("Date", unique=True)
+
+geolocator = Nominatim(user_agent="crime_mapper") # Initialize
 
 try: 
     client.admin.command('ping')
@@ -43,10 +47,29 @@ for details_tag in details_tags:
                 news_type = "N/A"
                 location = "N/A"
 
+            location_data = None
+            retries = 3
+            for i in range(retries):
+                try:
+                    location_data = geolocator.geocode(location)
+                    if location_data:
+                        lat = location_data.latitude
+                        lon = location_data.longitude
+                        break
+                except Exception as e:
+                    print(f"Geocoding attempt {i + 1} failed: {e}")
+                    time.sleep(2) 
+
+            if location_data is None:
+                lat, lon = None, None
+
             crime_document = {
             "Type of news": news_type,
             "Location": location,
-            "Date": date
+            "Date": date,
+            "Latitude": lat,  
+            "Longitude": lon 
+
             }
             try:
                 collection.insert_one(crime_document)
@@ -56,6 +79,8 @@ for details_tag in details_tags:
             print("Type of News:", news_type)
             print("Location:", location)
             print("Date:", date)
+            print("Latitude:", lat)
+            print("Longitude:", lon)
 
 
 client.close()
