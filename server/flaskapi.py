@@ -1,8 +1,10 @@
 from flask import Flask, jsonify
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 URI = 'mongodb+srv://rebeccaabel:StGzyB9rUeSaVF9i@cluster0.tgvserh.mongodb.net/?retryWrites=true&w=majority'
 
@@ -20,9 +22,12 @@ except Exception as e:
 
 @app.route('/api/markers')
 def get_markers():
-    markers = list(collection.find({}, {"_id": 0}))
+    try: 
+        markers = list(collection.find({}, {"_id": 0}))
+        return jsonify(markers)
+    except Exception as e: 
+        return jsonify({"error": str(e)})
 
-    return jsonify(markers)
 
 if __name__ == '__main__':
     app.run(debug=True)
