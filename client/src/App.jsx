@@ -1,33 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer,Marker,Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
-const App = () => {                 //declares a functional component named app 
-  const position = [62, 15];
-  const [markers, setMarkers] = useState ([]);
+const App = () => {
+  const initialPosition = [62, 15];
+  const initialZoom = 5.4; 
+  const [markers, setMarkers] = useState([]);
 
-  useEffect (() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/markers");
-        if(!response.ok) {
-          throw new Error("Failed to fetch data"); 
+        const response = await fetch("http://127.0.0.1:5000/api/markers");
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
         }
         const data = await response.json();
+        console.log("Fetched data:", data); 
         setMarkers(data);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     };
 
+    fetchData();
   }, []);
 
   return (
     <MapContainer
-      center={position}
-      zoom={5.4}
-      scrollWheelZoom={true}
+      center={initialPosition}
+      zoom={initialZoom}
       style={{ minHeight: "100vh", minWidth: "100vw" }}
     >
       <TileLayer
@@ -35,13 +37,20 @@ const App = () => {                 //declares a functional component named app
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {markers.map((marker, index) => (
-        <Marker key={index} position={[marker.lat, marker.lon]}>
-          <Popup>
-            {marker["Tyoe of crime"]} <br /> {marker["Location"]} <br /> {marker["Date"]}
-          </Popup>
-        </Marker>
-      ))}
+{markers.map((marker, index) => (
+  marker.Latitude && marker.Longitude ? (
+    <Marker
+      key={index}
+      position={[marker.Latitude, marker.Longitude]}
+    >
+      <Popup>
+        {marker["Type of news"]} <br /> {marker["Location"]} <br /> {marker["Date"]}
+      </Popup>
+    </Marker>
+  ) : null
+))}
+
+
     </MapContainer>
   );
 };
