@@ -1,5 +1,13 @@
 import re
-from geopy.geocoders import Nominatim
+import googlemaps
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env
+load_dotenv()
+
+# Access environment variables
+google_api_key = os.getenv("GOOGLE_API_KEY")
 
 # Sample MongoDB document
 document = {
@@ -10,9 +18,10 @@ document = {
     "preamble": "Barnvagnbrand i trappuppgång",
     "text": "12:24 Polis och räddningstjänst larmades till Esplanaden i Oxelösunds centrum. En barnvagn hade av oklar anledning börjat brinna på nedre botten i en trappuppgång. Rök spred sig och boende fick in rök.\nBranden är släckt och ambulanspersonal kontroller om personer som andats in rök mår bra.\nPolisen utreder vad som inträffat.\n13:02 Polisen misstänker att branden var anlagd och öppnar därför en förundersökning rörande mordbrand.\nFem personer blev milt rökskadade varav ett barn. Platsen spärras av.\n14:10 Sju personer fördes till sjukhus för kontroll av rökskador.\n14:45 Totalt åtta personer fördes med ambulans till sjukhus för vård mot rökskador."
 }
+print("Google API Key:", google_api_key)
 
-# Initialize geocoder
-geolocator = Nominatim(user_agent="my_geocoder")
+# Initialize Google Maps API client
+gmaps = googlemaps.Client(key=google_api_key)
 
 # Extract locations from different fields
 location_fields = ["title_and_location", "preamble", "text"]
@@ -21,9 +30,14 @@ locations = []
 for field in location_fields:
     matches = re.findall(r'\b(?:[A-ZÖÄÅa-zöäå.-]+(?:\s[A-ZÖÄÅa-zöäå.-]+)*)\b', document[field])
     for match in matches:
-        location = geolocator.geocode(match)
-        if location:
-            locations.append({"name": match, "coordinates": (location.latitude, location.longitude)})
+        # Use Google Geocoding API to get location information
+        geocode_result = gmaps.geocode(match, language='sv')
+        if geocode_result:
+            location_info = geocode_result[0]
+            geometry = location_info.get('geometry', {})
+            location = geometry.get('location', {})
+            if location:
+                locations.append({"name": match, "coordinates": (location['lat'], location['lng'])})
 
 # Define a hierarchy of location types
 location_hierarchy = ["area", "street", "city", "county"]
