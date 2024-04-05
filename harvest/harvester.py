@@ -5,23 +5,31 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup
 import time
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from dotenv import load_dotenv
+import os
+from pymongo.server_api import ServerApi
 
-
-
+load_dotenv()
 
 url = "https://polisen.se/aktuellt/polisens-nyheter/"
 
-mongo_uri = ''
-db_name = 'CrimeMap'
-collection_name = 'crime_data'
+mongo_uri = os.getenv("MONGO_URI")
+db_name = "crime_dataDB"
+collection_name = "crimes"
 
 driver = webdriver.Chrome()
-
-client = MongoClient(mongo_uri)
+client = MongoClient(mongo_uri, server_api=ServerApi('1'))
 db = client[db_name]
 collection = db[collection_name]
 
+
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
 
 try:
     driver.get(url)
@@ -70,7 +78,7 @@ try:
                     "text": text,
                     "link": link
                 }
-                collection.insert_one(article_data)
+                #collection.insert_one(article_data)
 
                 # Print the extracted information for each article
                 print("Updated Time:", updated_time)
