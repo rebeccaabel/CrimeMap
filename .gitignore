@@ -1,5 +1,8 @@
 # Ignore node_modules directory
 node_modules/
 
+# Ignore pycache
+__pycache__/
+
 # Ignore .env 
 .env

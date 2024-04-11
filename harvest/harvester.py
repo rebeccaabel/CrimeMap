@@ -5,23 +5,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup
 import time
-from pymongo.mongo_client import MongoClient
 from dotenv import load_dotenv
 import os
-from pymongo.server_api import ServerApi
+from harvest.harvester_utils import get_db_connection, upsert_article
 
 load_dotenv()
 
 url = "https://polisen.se/aktuellt/polisens-nyheter/"
-
 mongo_uri = os.getenv("MONGO_URI")
 db_name = "crime_dataDB"
 collection_name = "crimes"
 
 driver = webdriver.Chrome()
-client = MongoClient(mongo_uri, server_api=ServerApi('1'))
-db = client[db_name]
-collection = db[collection_name]
+db, client, collection = get_db_connection(mongo_uri, db_name, collection_name)
 
 
 # Send a ping to confirm a successful connection
@@ -78,7 +74,12 @@ try:
                     "text": text,
                     "link": link
                 }
-                #collection.insert_one(article_data)
+                result = upsert_article(collection, article_data)
+                if result.upserted_id:
+                    print("Inserted new article:", title_and_location)
+                else:
+                    print("Updated existing article:", title_and_location)
+
 
                 # Print the extracted information for each article
                 print("Updated Time:", updated_time)
